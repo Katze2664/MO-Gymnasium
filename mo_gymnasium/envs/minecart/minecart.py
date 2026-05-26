@@ -26,8 +26,6 @@ FUEL_MINE = -0.05
 FUEL_ACC = -0.025
 FUEL_IDLE = -0.005
 
-CAPACITY = 1
-
 ACT_MINE = 0
 ACT_LEFT = 1
 ACT_RIGHT = 2
@@ -42,17 +40,6 @@ FUEL_LIST = [
     FUEL_IDLE,
     FUEL_IDLE,
 ]
-FUEL_DICT = {
-    ACT_MINE: FUEL_MINE + FUEL_IDLE,
-    ACT_LEFT: FUEL_IDLE,
-    ACT_RIGHT: FUEL_IDLE,
-    ACT_ACCEL: FUEL_IDLE + FUEL_ACC,
-    ACT_BRAKE: FUEL_IDLE,
-    ACT_NONE: FUEL_IDLE,
-}
-ACTIONS = ["Mine", "Left", "Right", "Accelerate", "Brake", "None"]
-ACTION_COUNT = len(ACTIONS)
-
 
 MINE_RADIUS = 0.14
 BASE_RADIUS = 0.15
@@ -61,13 +48,8 @@ WIDTH = 480
 HEIGHT = 480
 
 # Color definitions
-WHITE = (255, 255, 255)
 GRAY = (150, 150, 150)
-C_GRAY = (150 / 255.0, 150 / 255.0, 150 / 255.0)
-DARK_GRAY = (100, 100, 100)
-BLACK = (0, 0, 0)
 RED = (255, 70, 70)
-C_RED = (1.0, 70 / 255.0, 70 / 255.0)
 
 FPS = 180
 
@@ -97,7 +79,7 @@ class Minecart(gym.Env, EzPickle):
     - 2D position of the cart
     - Speed of the cart
     - sin and cos of the cart's orientation
-    - porcentage of the capacity of the cart filled
+    - percentage of the capacity of the cart filled
     If image_observation is True, the observation is a 3D image of the environment.
 
     ## Action Space
@@ -426,9 +408,6 @@ class Minecart(gym.Env, EzPickle):
         self.mine_rects = []
         for mine in self.mines:
             mine_sprite = pygame.sprite.Sprite()
-            # mine_sprite.image = pygame.transform.rotozoom(
-            #    pygame.image.load(MINE_IMG), mine.rotation, MINE_SCALE,
-            # ).convert_alpha()
             mine_sprite.image = pygame.image.load(MINE_IMG)
             mine_sprite.image = pygame.transform.scale(
                 mine_sprite.image,
