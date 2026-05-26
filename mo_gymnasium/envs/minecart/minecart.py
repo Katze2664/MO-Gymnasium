@@ -367,17 +367,17 @@ class Minecart(gym.Env, EzPickle):
 
             # Compute rewards for each sequence
             fuel_costs = np.array([f * self.frame_skip for f in FUEL_LIST])
-            for s in all_sequences:
-                reward = np.zeros((len(s), self.reward_dim))
-                reward[:, -1] = fuel_costs[s]
-                mine_actions = s.count(ACT_MINE)
+            for seq in all_sequences:
+                reward = np.zeros((len(seq), self.reward_dim))
+                reward[:, -1] = fuel_costs[seq]
+                mine_actions = seq.count(ACT_MINE)
                 reward[-1, :-1] = mine_means * mine_actions / max(1, (mn_sum * mine_actions) / self.capacity)
 
-                if len(s) > max_len:
-                    max_len = 2 * len(s)  # Factor of 2 as margin to avoid recalculating discount_map too often
+                if len(seq) > max_len:
+                    max_len = 2 * len(seq)  # Factor of 2 as margin to avoid recalculating discount_map too often
                     discount_map = gamma ** np.arange(max_len)
 
-                reward = np.dot(discount_map[: len(s)], reward)
+                reward = np.dot(discount_map[:len(seq)], reward)
                 all_rewards.append(reward)
 
             all_rewards = pareto_filter(all_rewards, minimize=False)
