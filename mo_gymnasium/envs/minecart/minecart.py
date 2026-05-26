@@ -227,6 +227,7 @@ class Minecart(gym.Env, EzPickle):
         Returns:
             The pareto coverage set
         """
+        max_len = 0
         all_rewards = []
         base_perimeter = BASE_RADIUS * BASE_SCALE
 
@@ -366,27 +367,15 @@ class Minecart(gym.Env, EzPickle):
 
             # Compute rewards for each sequence
             fuel_costs = np.array([f * self.frame_skip for f in FUEL_LIST])
-
-            def maxlen(l):
-                if len(l) == 0:
-                    return 0
-                return max([len(s) for s in l])
-
-            longest_pattern = maxlen(trimmed_sequences)
-            max_len = (
-                rotations
-                + longest_pattern
-                + 1
-                + (180 // (ROTATION * self.frame_skip))
-                + maxlen(mine_sequences)
-                + longest_pattern
-            )
-            discount_map = gamma ** np.arange(max_len)
             for s in all_sequences:
                 reward = np.zeros((len(s), self.reward_dim))
                 reward[:, -1] = fuel_costs[s]
                 mine_actions = s.count(ACT_MINE)
                 reward[-1, :-1] = mine_means * mine_actions / max(1, (mn_sum * mine_actions) / self.capacity)
+
+                if len(s) > max_len:
+                    max_len = 2 * len(s)  # Factor of 2 as margin to avoid recalculating discount_map too often
+                    discount_map = gamma ** np.arange(max_len)
 
                 reward = np.dot(discount_map[: len(s)], reward)
                 all_rewards.append(reward)
