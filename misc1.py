@@ -1,4 +1,3 @@
-
 # Checks modified minecarts produce the same pareto fronts and convex sets as the original (mc1)
 # %%
 import time
@@ -16,7 +15,6 @@ import mo_gymnasium.envs.minecart.minecart1 as mc_a
 # import mo_gymnasium.envs.minecart.minecart6 as mc_b
 import mo_gymnasium.envs.minecart.minecart7 as mc_b
 
-
 config_stochastic = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config.json")
 config_det = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config_det.json")
 
@@ -32,12 +30,12 @@ for gamma in [0.98, 1]:
                     frame_skip=frame_skip,
                     incremental_frane_skip=incremental,
                     config=config,
-                    )
+                )
                 minecart_b = mc_b.Minecart(
                     frame_skip=frame_skip,
                     incremental_frane_skip=incremental,
                     config=config,
-                    )
+                )
                 pareto_front_a = minecart_a.pareto_front(
                     gamma=gamma,
                     symmetric=symmetric,

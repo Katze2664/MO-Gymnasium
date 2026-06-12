@@ -1,7 +1,9 @@
 absl-py==2.3.1
 asttokens==3.0.0
 attrs==25.3.0
+black==26.5.1
 box2d-py==2.3.5
+click==8.4.1
 cloudpickle==3.1.1
 colorama==0.4.6
 comm==0.2.3
@@ -34,16 +36,19 @@ kiwisolver==1.4.8
 llvmlite==0.47.0
 matplotlib==3.10.5
 matplotlib-inline==0.1.7
--e git+https://github.com/Katze2664/MO-Gymnasium.git@c78338eaa22143fda0e14cb52bd806e10dd70fc9#egg=mo_gymnasium
+-e git+https://github.com/Katze2664/MO-Gymnasium.git@dcda81d6f610d77efd02a760b97bdf3b772b72d9#egg=mo_gymnasium
 mujoco==3.3.4
+mypy_extensions==1.1.0
 nes_py==8.2.1
 nest-asyncio==1.6.0
+nodeenv==1.10.0
 numba==0.65.1
 numpy==1.26.4
 packaging==25.0
 pandas==2.3.1
 paretoset==1.2.5
 parso==0.8.4
+pathspec==1.1.1
 pillow==11.3.0
 platformdirs==4.3.8
 pluggy==1.6.0
@@ -56,8 +61,10 @@ pyglet==1.5.21
 Pygments==2.19.2
 PyOpenGL==3.1.9
 pyparsing==3.2.3
+pyright==1.1.410
 pytest==7.1.3
 python-dateutil==2.9.0.post0
+pytokens==0.4.1
 pytz==2025.2
 pywin32==311
 pyzmq==27.0.1

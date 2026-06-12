@@ -1,4 +1,3 @@
-
 # Plots time taken to run different pareto front versions
 # %%
 import numpy as np
@@ -13,7 +12,8 @@ for key, grp in df.groupby("Version"):
     # print(grp)
     plt.errorbar(
         x=grp["log10(Batch Size)"],
-        y=grp["Mean"], label=key,
+        y=grp["Mean"],
+        label=key,
         yerr=grp["Std"],
     )
 plt.legend()

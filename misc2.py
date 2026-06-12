@@ -1,4 +1,3 @@
-
 # Compares time taken to run different pareto front versions
 # %%
 import time
@@ -15,7 +14,6 @@ import mo_gymnasium.envs.minecart.minecart5 as mc_5
 import mo_gymnasium.envs.minecart.minecart6 as mc_6
 import mo_gymnasium.envs.minecart.minecart7 as mc_7
 
-
 config_stochastic = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config.json")
 config_det = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config_det.json")
 
@@ -26,13 +24,34 @@ incremental = True
 symmetric = False
 
 mcs = [
-    ("minecart1", mc_1,),
-    ("minecart2", mc_2,),
-    ("minecart3", mc_3,),
-    ("minecart4", mc_4,),
-    ("minecart5", mc_5,),
-    ("minecart6", mc_6,),
-    ("minecart7", mc_7,),
+    (
+        "minecart1",
+        mc_1,
+    ),
+    (
+        "minecart2",
+        mc_2,
+    ),
+    (
+        "minecart3",
+        mc_3,
+    ),
+    (
+        "minecart4",
+        mc_4,
+    ),
+    (
+        "minecart5",
+        mc_5,
+    ),
+    (
+        "minecart6",
+        mc_6,
+    ),
+    (
+        "minecart7",
+        mc_7,
+    ),
 ]
 minecarts = []
 for name, mc in mcs:

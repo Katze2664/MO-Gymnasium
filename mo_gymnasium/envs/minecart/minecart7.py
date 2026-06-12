@@ -15,7 +15,6 @@ from gymnasium.utils import EzPickle
 from paretoset import paretoset
 from scipy.spatial import ConvexHull
 
-
 EPS_SPEED = 0.001  # Minimum speed to be considered in motion
 HOME_X = 0.0
 HOME_Y = 0.0
@@ -203,7 +202,9 @@ class Minecart(gym.Env, EzPickle):
         )
         self.reward_dim = self.ore_cnt + 1
 
-    def convex_coverage_set(self, gamma: float, symmetric: bool = True, batch_size: int = 10**5) -> pd.DataFrame:
+    def convex_coverage_set(
+        self, gamma: float, symmetric: bool = True, batch_size: int = 10**5
+    ) -> tuple[np.ndarray, pd.DataFrame]:
         """
         Computes an approximate convex coverage set (CCS).
 
@@ -229,13 +230,13 @@ class Minecart(gym.Env, EzPickle):
 
         return convex_rewards, df_convex
 
-    def pareto_front(self, gamma: float, symmetric: bool = True, batch_size: int = 10**5) -> pd.DataFrame:
+    def pareto_front(self, gamma: float, symmetric: bool = True, batch_size: int = 10**5) -> tuple[np.ndarray, pd.DataFrame]:
         """
         Computes an approximate pareto front.
 
         Args:
             gamma (float): Discount factor to apply to rewards symmetric (bool): If true, we assume the pattern of
-            accelerations from the base to the mine is the same as from the mine to the base. Default: True 
+            accelerations from the base to the mine is the same as from the mine to the base. Default: True
             batch_size (int): The number of trajectory rewards to store before computing a batch of pareto points. Default: 10**5
         Returns:
             A tuple containing:
@@ -408,7 +409,7 @@ class Minecart(gym.Env, EzPickle):
                 mine_actions = seq.count(ACT_MINE)
                 reward[-1, :-1] = mine_means * mine_actions / max(1, (mn_sum * mine_actions) / self.capacity)
 
-                reward = np.dot(discount_map[:len(seq)], reward)
+                reward = np.dot(discount_map[: len(seq)], reward)
                 rewards_batch[idx] = reward
                 mine_pos_batch[idx] = tuple(mine.pos)
                 action_seq_batch[idx] = tuple(seq)
