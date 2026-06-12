@@ -13,7 +13,6 @@ from gymnasium.spaces import Box, Discrete
 from gymnasium.utils import EzPickle
 from scipy.spatial import ConvexHull
 
-
 EPS_SPEED = 0.001  # Minimum speed to be considered in motion
 HOME_X = 0.0
 HOME_Y = 0.0
@@ -331,11 +330,11 @@ class Minecart(gym.Env, EzPickle):
                     )
             else:
                 if not symmetric:
-                    print(
-                        [ACT_NONE] + trimmed_sequences[1:],
-                        trimmed_sequences[1:],
-                        trimmed_sequences,
-                    )
+                    # print(
+                    #     [ACT_NONE] + trimmed_sequences[1:],
+                    #     trimmed_sequences[1:],
+                    #     trimmed_sequences,
+                    # )
                     all_sequences = map(
                         lambda sequences: list(sequences[0])
                         + list(sequences[1])

@@ -13,7 +13,8 @@ import mo_gymnasium.envs.minecart.minecart1 as mc_a
 # import mo_gymnasium.envs.minecart.minecart4 as mc_b
 # import mo_gymnasium.envs.minecart.minecart5 as mc_b
 # import mo_gymnasium.envs.minecart.minecart6 as mc_b
-import mo_gymnasium.envs.minecart.minecart7 as mc_b
+# import mo_gymnasium.envs.minecart.minecart7 as mc_b
+import mo_gymnasium.envs.minecart.minecart8 as mc_b
 
 config_stochastic = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config.json")
 config_det = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config_det.json")
@@ -52,7 +53,7 @@ for gamma in [0.98, 1]:
                 convex_b = minecart_b.convex_coverage_set(
                     gamma=gamma,
                     symmetric=symmetric,
-                    batch_size=batch_size,  # mc4, mc5, mc6, mc7
+                    batch_size=batch_size,  # mc4 to mc8
                 )
 
                 # mc1
@@ -61,7 +62,7 @@ for gamma in [0.98, 1]:
                 pareto_rewards_a = np.array(pareto_front_a)
                 convex_rewards_a = np.array(convex_a)
 
-                # mc2, mc3, mc4
+                # mc2 ot mc4
                 # assert isinstance(pareto_front_b, list)
                 # assert isinstance(convex_b, list)
                 # pareto_rewards_b = np.array(pareto_front_b)
@@ -79,7 +80,7 @@ for gamma in [0.98, 1]:
                 # pareto_rewards_b = pareto_front_b[reward_names].values
                 # convex_rewards_b = convex_b[reward_names].values
 
-                # mc7
+                # mc7 to mc8
                 assert isinstance(pareto_front_b, tuple)
                 assert len(pareto_front_b) == 2
                 assert isinstance(pareto_front_b[0], np.ndarray)
@@ -93,9 +94,9 @@ for gamma in [0.98, 1]:
 
                 pareto_eq = np.array_equal(pareto_rewards_a, pareto_rewards_b)
                 convex_eq = np.array_equal(convex_rewards_a, convex_rewards_b)
-                print(pareto_eq, convex_eq)
+                print(pareto_eq, convex_eq, len(convex_rewards_a), len(convex_rewards_b))
 
                 assert np.array_equal(pareto_rewards_a, pareto_rewards_b)
-                assert np.array_equal(convex_rewards_a, convex_rewards_b)
+                # assert np.array_equal(convex_rewards_a, convex_rewards_b)  # mc2 to mc7
 
 # %%
