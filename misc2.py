@@ -102,6 +102,7 @@ for rep in range(replicates):
                 pareto_rewards = pareto_front[reward_names].values
             else:
                 assert isinstance(pareto_front, np.ndarray)
+                pareto_rewards = pareto_front
 
             eq = np.array_equal(pareto_rewards_1, pareto_rewards)
             print(eq)
