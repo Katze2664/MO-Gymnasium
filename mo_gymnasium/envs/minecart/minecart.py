@@ -7,12 +7,10 @@ from typing import List, Optional
 
 import gymnasium as gym
 import numpy as np
-import pandas as pd
 import pygame
 import scipy.stats
 from gymnasium.spaces import Box, Discrete
 from gymnasium.utils import EzPickle
-from paretoset import paretoset
 from scipy.spatial import ConvexHull
 
 
@@ -141,10 +139,10 @@ class Minecart(gym.Env, EzPickle):
         render_mode: Optional[str] = None,
         image_observation: bool = False,
         frame_skip: int = 4,
-        incremental_frane_skip: bool = True,
+        incremental_frame_skip: bool = True,
         config=str(Path(__file__).parent.absolute()) + "/mine_config.json",
     ):
-        EzPickle.__init__(self, render_mode, image_observation, frame_skip, incremental_frane_skip, config)
+        EzPickle.__init__(self, render_mode, image_observation, frame_skip, incremental_frame_skip, config)
 
         self.render_mode = render_mode
         self.screen = None
@@ -154,7 +152,7 @@ class Minecart(gym.Env, EzPickle):
         self.config = config
         self.frame_skip = frame_skip
         assert self.frame_skip > 0, "Frame skip must be greater than 0."
-        self.incremental_frame_skip = incremental_frane_skip
+        self.incremental_frame_skip = incremental_frame_skip
 
         with open(self.config) as f:
             data = json.load(f)
@@ -171,7 +169,6 @@ class Minecart(gym.Env, EzPickle):
             )
             for i in range(self.ore_cnt)
         ]
-        self.reward_names = ["Ore" + str(i + 1) for i in range(self.ore_cnt)] + ["Fuel"]
         self.generate_mines(None)
 
         if "mines" in data:
@@ -203,44 +200,34 @@ class Minecart(gym.Env, EzPickle):
         )
         self.reward_dim = self.ore_cnt + 1
 
-    def convex_coverage_set(self, gamma: float, symmetric: bool = True, batch_size: int = 10**5) -> pd.DataFrame:
+    def convex_coverage_set(self, gamma: float, symmetric: bool = True) -> List[np.ndarray]:
         """
         Computes an approximate convex coverage set (CCS).
 
         Args:
             gamma (float): Discount factor to apply to rewards.
             symmetric (bool): If true, we assume the pattern of accelerations from the base to the mine is the same as from the mine to the base. Default: True
-            batch_size (int): The number of trajectory rewards to store before computing a batch of pareto points. Default: 10**5
 
         Returns:
             The convex coverage set
         """
-        df_pareto = self.pareto_front(gamma, symmetric, batch_size)
-        pareto_rewards = df_pareto[self.reward_names].values
-        origin = np.min(pareto_rewards, axis=0)
-        extended_rewards = np.concatenate([pareto_rewards, [origin]], axis=0)
-        origin_idx = len(extended_rewards) - 1
-        hull = ConvexHull(extended_rewards)
-        vertices = hull.vertices[hull.vertices != origin_idx]
-        df_convex = df_pareto.iloc[vertices]
-        return df_convex
+        policies = self.pareto_front(gamma, symmetric)
+        origin = np.min(policies, axis=0)
+        extended_policies = [origin] + policies
+        return [policies[idx - 1] for idx in ConvexHull(extended_policies).vertices if idx != 0]
 
-    def pareto_front(self, gamma: float, symmetric: bool = True, batch_size: int = 10**5) -> pd.DataFrame:
+    def pareto_front(self, gamma: float, symmetric: bool = True) -> List[np.ndarray]:
         """
         Computes an approximate pareto front.
 
         Args:
             gamma (float): Discount factor to apply to rewards
             symmetric (bool): If true, we assume the pattern of accelerations from the base to the mine is the same as from the mine to the base. Default: True
-            batch_size (int): The number of trajectory rewards to store before computing a batch of pareto points. Default: 10**5
+
         Returns:
             The pareto coverage set
         """
-        idx = 0
-        rewards_batch = np.empty(shape=(batch_size, self.reward_dim), dtype=np.float64)
-        mine_pos_batch = np.empty(shape=(batch_size,), dtype=object)
-        action_seq_batch = np.empty(shape=(batch_size,), dtype=object)
-        pareto_batches = []
+        all_rewards = []
         base_perimeter = BASE_RADIUS * BASE_SCALE
 
         # Empty mine just outside the base
@@ -395,38 +382,18 @@ class Minecart(gym.Env, EzPickle):
                 + longest_pattern
             )
             discount_map = gamma ** np.arange(max_len)
-            for seq in all_sequences:
-                reward = np.zeros((len(seq), self.reward_dim))
-                reward[:, -1] = fuel_costs[seq]
-                mine_actions = seq.count(ACT_MINE)
+            for s in all_sequences:
+                reward = np.zeros((len(s), self.reward_dim))
+                reward[:, -1] = fuel_costs[s]
+                mine_actions = s.count(ACT_MINE)
                 reward[-1, :-1] = mine_means * mine_actions / max(1, (mn_sum * mine_actions) / self.capacity)
 
-                reward = np.dot(discount_map[:len(seq)], reward)
-                rewards_batch[idx] = reward
-                mine_pos_batch[idx] = tuple(mine.pos)
-                action_seq_batch[idx] = tuple(seq)
-                idx += 1
+                reward = np.dot(discount_map[: len(s)], reward)
+                all_rewards.append(reward)
 
-                if idx == batch_size:
-                    pareto_mask = paretoset(rewards_batch, sense=["max"] * self.reward_dim)
-                    df = pd.DataFrame(rewards_batch[pareto_mask], columns=self.reward_names)
-                    df["Mine Position"] = mine_pos_batch[pareto_mask]
-                    df["Action Sequence"] = action_seq_batch[pareto_mask]
-                    pareto_batches.append(df)
-                    idx = 0
+            all_rewards = pareto_filter(all_rewards, minimize=False)
 
-        if idx > 0:
-            df = pd.DataFrame(rewards_batch[:idx], columns=self.reward_names)
-            df["Mine Position"] = mine_pos_batch[:idx]
-            df["Action Sequence"] = action_seq_batch[:idx]
-            pareto_batches.append(df)
-
-        df_pareto = pd.concat(pareto_batches, axis=0)
-        pareto_mask = paretoset(df_pareto[self.reward_names].values, sense=["max"] * self.reward_dim)
-        df_pareto = df_pareto[pareto_mask]
-        df_pareto = df_pareto.reset_index(drop=True)
-
-        return df_pareto
+        return all_rewards
 
     def generate_mines(self, mine_distributions=None):
         """
@@ -564,7 +531,7 @@ class Minecart(gym.Env, EzPickle):
         if update:
             self.pixels = np.transpose(np.array(pygame.surfarray.pixels3d(self.canvas)), axes=(1, 0, 2))
 
-        return self.pixels
+        return self.pixels.copy()
 
     def get_state(self, update=True):
         """Returns the environment's state
@@ -637,7 +604,6 @@ class Minecart(gym.Env, EzPickle):
     def render(self):
         if self.canvas is None or self.last_render_mode_used != self.render_mode:
             self.last_render_mode_used = self.render_mode
-            pygame.init()
             self.canvas = pygame.Surface((WIDTH, HEIGHT))
             if self.render_mode == "human":
                 pygame.display.init()
@@ -859,6 +825,29 @@ def truncated_mean(mean, std, a, b):
 
     trunc_mean = mean + ((phia - phib) / (PHIB - PHIA)) * std
     return trunc_mean
+
+
+def pareto_filter(costs, minimize=True):
+    """
+    Find the pareto-efficient points
+    :param costs: An (n_points, n_costs) array
+    :param return_mask: True to return a mask
+    :return: An array of indices of pareto-efficient points.
+        If return_mask is True, this will be an (n_points, ) boolean array
+        Otherwise it will be a (n_efficient_points, ) integer array of indices.
+    from https://stackoverflow.com/a/40239615
+    """
+    costs_copy = np.copy(costs) if minimize else -np.copy(costs)
+    is_efficient = np.arange(costs_copy.shape[0])
+    next_point_index = 0  # Next index in the is_efficient array to search for
+    while next_point_index < len(costs_copy):
+        nondominated_point_mask = np.any(costs_copy < costs_copy[next_point_index], axis=1)
+        nondominated_point_mask[next_point_index] = True
+        # Remove dominated points
+        is_efficient = is_efficient[nondominated_point_mask]
+        costs_copy = costs_copy[nondominated_point_mask]
+        next_point_index = np.sum(nondominated_point_mask[:next_point_index]) + 1
+    return [costs[i] for i in is_efficient]
 
 
 if __name__ == "__main__":
