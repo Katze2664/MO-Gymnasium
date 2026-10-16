@@ -1,0 +1,10 @@
+v1 - removed unneccessary print statement
+v2 - batch size (appends to batch list, pareto filters, appends filtered to pareto list), renamed `all_rewards` to `pareto_rewards`, reintroduced unnecessary print statement
+v3 - imports paretoset, increases default batch size to 10**5, rewards batch is still a list but is converted to an array to allow paretoset filtering, deletes pareto_filter().
+v4 - introduces batch_size parameter to convex_coverage_set(). pareto_front() converts rewards batch to array with incrementing index (avoids converting list to array to filter), filtered batch arrays are appended to a list and later concatenated for the final filtering, return type is still list.
+v5 - change return type to array for convex_coverage_set() and pareto_front(). convex_coverage_set() explicitly obtains vertices to index points to avoid confusing off-by-one indexing of the concatenated policies.
+v6 - import pandas, specify reward names, convert return type to pandas, concatenate origin as last index, rename s to seq, create mine position and action sequence arrays.
+v7 - add `_` to reward names, change return type to tuple(array, dataframe), update docstring.
+v8 - import linprog, delete ConvexHull, create weight names, use check_linear_maximizability(), coplanar mask for array, delete unneccessary print statement, rename mine and action column.
+v9 - update docstring formatting
+v10 - incomplete docstring edits
