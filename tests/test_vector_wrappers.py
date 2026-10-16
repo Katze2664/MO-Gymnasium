@@ -1,5 +1,8 @@
+import inspect
+
 import gymnasium as gym
 import numpy as np
+import pytest
 
 import mo_gymnasium as mo_gym
 from mo_gymnasium.wrappers.vector import (
@@ -111,6 +114,29 @@ def test_mo_record_ep_statistic_vector_env_async():
     envs.close()
 
 
+def test_mo_record_ep_statistic_disc_return_reset_between_episodes():
+    # Regression: disc_episode_returns must be zeroed for autoreset sub-envs so a new
+    # episode's discounted return is not polluted by the previous episode's.
+    envs = MOSyncVectorEnv([lambda: mo_gym.make("deep-sea-treasure-v0")])
+    envs = MORecordEpisodeStatistics(envs, gamma=0.97)
+    envs.reset()
+    # Episode 1: reach the (8.2, -3) treasure in 3 steps (same trajectory as go_to_8_3)
+    envs.step([3])
+    envs.step([1])
+    _, _, terminateds, _, info = envs.step([1])
+    assert terminateds[0]
+    np.testing.assert_allclose(info["episode"]["dr"][0], [7.71538, -2.9109], rtol=0, atol=1e-2)
+    # Autoreset step (reward is 0 for the reset sub-env)
+    envs.step([0])
+    # Episode 2: identical trajectory must yield the identical discounted return
+    envs.step([3])
+    envs.step([1])
+    _, _, terminateds, _, info = envs.step([1])
+    assert terminateds[0]
+    np.testing.assert_allclose(info["episode"]["dr"][0], [7.71538, -2.9109], rtol=0, atol=1e-2)
+    envs.close()
+
+
 def _test_gym_wrapper_and_vector_logic(envs, num_envs: int):
     envs.reset()
     for i in range(30):
@@ -138,3 +164,46 @@ def test_gym_wrapper_and_vector_async():
     )
     _test_gym_wrapper_and_vector_logic(envs, num_envs)
     envs.close()
+
+
+@pytest.mark.parametrize("shared_memory", [True, False])
+@pytest.mark.parametrize("max_concurrency", [None, 1, 2])
+def test_mo_async_concurrency(shared_memory, max_concurrency):
+    kwargs = {}
+    if max_concurrency is not None:
+        if "max_concurrency" not in inspect.signature(gym.vector.AsyncVectorEnv).parameters:
+            pytest.skip("Gymnasium does not support max_concurrency")
+        kwargs["max_concurrency"] = max_concurrency
+    envs = MOAsyncVectorEnv(
+        [lambda: mo_gym.make("deep-sea-treasure-v0") for _ in range(2)],
+        shared_memory=shared_memory,
+        **kwargs,
+    )
+    try:
+        envs.reset(seed=0)
+        _test_autoreset_logic(envs)
+    finally:
+        envs.close()
+
+
+@pytest.mark.parametrize("shared_memory", [True, False])
+@pytest.mark.parametrize("masked_reset", [True, False])
+def test_mo_async_step_after_explicit_reset(shared_memory, masked_reset):
+    envs = MOAsyncVectorEnv(
+        [lambda: mo_gym.make("deep-sea-treasure-v0") for _ in range(2)],
+        shared_memory=shared_memory,
+    )
+    try:
+        envs.reset(seed=0)
+        _, _, terminated, _, _ = envs.step([1, 3])
+        np.testing.assert_array_equal(terminated, [True, False])
+        if masked_reset:
+            envs.reset(options={"reset_mask": np.array([True, False])})
+        else:
+            envs.reset()
+        obs, rewards, terminated, truncated, _ = envs.step([3, 3])
+        np.testing.assert_array_equal(obs, [[0, 1], [0, 2 if masked_reset else 1]])
+        np.testing.assert_array_equal(rewards, [[0, -1], [0, -1]])
+        assert not terminated.any() and not truncated.any()
+    finally:
+        envs.close()
