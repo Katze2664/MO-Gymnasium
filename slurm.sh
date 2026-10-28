@@ -18,7 +18,7 @@ FOZ="/fred/oz347"
 ID="${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 
 ml gcccore/12.2.0
-ml python/3.10.8-bare
+ml python/3.11.2-bare
 source /fred/oz347/MO-Gymnasium/.venv3_10_8/bin/activate
 
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
