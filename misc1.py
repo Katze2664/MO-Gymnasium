@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-import mo_gymnasium.envs.minecart.minecart1 as mc_a
+# import mo_gymnasium.envs.minecart.minecart1 as mc_a
 
 # import mo_gymnasium.envs.minecart.minecart2 as mc_b
 # import mo_gymnasium.envs.minecart.minecart3 as mc_b
@@ -14,13 +14,14 @@ import mo_gymnasium.envs.minecart.minecart1 as mc_a
 # import mo_gymnasium.envs.minecart.minecart5 as mc_b
 # import mo_gymnasium.envs.minecart.minecart6 as mc_b
 # import mo_gymnasium.envs.minecart.minecart7 as mc_b
-# import mo_gymnasium.envs.minecart.minecart8 as mc_b
-import mo_gymnasium.envs.minecart.minecart_b1 as mc_b
+import mo_gymnasium.envs.minecart.minecart8 as mc_b
+import mo_gymnasium.envs.minecart.minecart_b1 as mc_a
+
 
 config_stochastic = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config.json")
 config_det = Path(r"C:\Users\ethan\Desktop\Cloned repos\MO-Gymnasium\mo_gymnasium\envs\minecart\mine_config_det.json")
 
-frame_skip = 4
+frame_skip = 3
 batch_size = 10**2
 
 for gamma in [0.98, 1]:
@@ -30,7 +31,7 @@ for gamma in [0.98, 1]:
                 print(f"{frame_skip=}, {gamma=}, {config.name}, {incremental=}, {symmetric=}")
                 minecart_a = mc_a.Minecart(
                     frame_skip=frame_skip,
-                    incremental_frane_skip=incremental,
+                    incremental_frame_skip=incremental,
                     config=config,
                 )
                 minecart_b = mc_b.Minecart(
@@ -50,11 +51,19 @@ for gamma in [0.98, 1]:
                 convex_a = minecart_a.convex_coverage_set(
                     gamma=gamma,
                     symmetric=symmetric,
+                    batch_size=batch_size,
+                    include_coplanar=True,
                 )
+                # convex_b = minecart_b.convex_coverage_set(
+                #     gamma=gamma,
+                #     symmetric=symmetric,
+                #     batch_size=batch_size,  # mc4 to mc7
+                # )
                 convex_b = minecart_b.convex_coverage_set(
                     gamma=gamma,
                     symmetric=symmetric,
-                    batch_size=batch_size,  # mc4 to mc8
+                    batch_size=batch_size,  # mc8, mc_b1
+                    include_coplanar=True,
                 )
 
                 # mc1
@@ -64,10 +73,10 @@ for gamma in [0.98, 1]:
                 convex_rewards_a = np.array(convex_a)
 
                 # mc2 to mc4, mc_b1
-                assert isinstance(pareto_front_b, list)
-                assert isinstance(convex_b, list)
-                pareto_rewards_b = np.array(pareto_front_b)
-                convex_rewards_b = np.array(convex_b)
+                # assert isinstance(pareto_front_b, list)
+                # assert isinstance(convex_b, list)
+                # pareto_rewards_b = np.array(pareto_front_b)
+                # convex_rewards_b = np.array(convex_b)
 
                 # mc5
                 # assert isinstance(pareto_front_b, np.ndarray)
@@ -82,23 +91,22 @@ for gamma in [0.98, 1]:
                 # convex_rewards_b = convex_b[reward_names].values
 
                 # mc7 to mc8
-                # assert isinstance(pareto_front_b, tuple)
-                # assert len(pareto_front_b) == 2
-                # assert isinstance(pareto_front_b[0], np.ndarray)
-                # assert isinstance(pareto_front_b[1], pd.DataFrame)
-                # assert isinstance(convex_b, tuple)
-                # assert len(convex_b) == 2
-                # assert isinstance(convex_b[0], np.ndarray)
-                # assert isinstance(convex_b[1], pd.DataFrame)
-                # pareto_rewards_b = pareto_front_b[0]
-                # convex_rewards_b = convex_b[0]
+                assert isinstance(pareto_front_b, tuple)
+                assert len(pareto_front_b) == 2
+                assert isinstance(pareto_front_b[0], np.ndarray)
+                assert isinstance(pareto_front_b[1], pd.DataFrame)
+                assert isinstance(convex_b, tuple)
+                assert len(convex_b) == 2
+                assert isinstance(convex_b[0], np.ndarray)
+                assert isinstance(convex_b[1], pd.DataFrame)
+                pareto_rewards_b = pareto_front_b[0]
+                convex_rewards_b = convex_b[0]
 
                 pareto_eq = np.array_equal(pareto_rewards_a, pareto_rewards_b)
-                # convex_eq = np.array_equal(convex_rewards_a, convex_rewards_b)
+                convex_eq = np.array_equal(convex_rewards_a, convex_rewards_b)
                 print(pareto_eq)
-                # print(convex_eq, len(convex_rewards_a), len(convex_rewards_b))
+                print(convex_eq, len(convex_rewards_a), len(convex_rewards_b))
 
                 assert np.array_equal(pareto_rewards_a, pareto_rewards_b)
-                # assert np.array_equal(convex_rewards_a, convex_rewards_b)  # mc2 to mc7
-
+                assert np.array_equal(convex_rewards_a, convex_rewards_b)  # (mc1 vs mc2 to mc7) or (mc8 vs mc_b1)
 # %%

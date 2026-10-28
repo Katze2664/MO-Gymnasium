@@ -23,8 +23,14 @@ classifiers = [
 ]
 dependencies = [
     "gymnasium >=1.1.0",
+    "ipykernel>=7.4.0",
+    "isort>=9.0.2",
+    "matplotlib>=3.11.2",
     "numpy >=1.21",
+    "pandas>=2.3.3",
+    "paretoset>=1.2.5",
     "pygame-ce >=2.1.3",
+    "scipy>=1.17.1",
 ]
 dynamic = ["version"]
 

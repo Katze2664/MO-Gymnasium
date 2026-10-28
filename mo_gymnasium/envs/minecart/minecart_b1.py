@@ -252,7 +252,7 @@ class Minecart(gym.Env, EzPickle):
             mask = coplanar_mask
         else:
             mask = strict_mask
-        convex_rewards = pareto_rewards_arr[mask]
+        convex_rewards = list(pareto_rewards_arr[mask])
 
         return convex_rewards
 
@@ -433,7 +433,7 @@ class Minecart(gym.Env, EzPickle):
                     pareto_batch = pareto_filter(rewards_batch, minimize=False)
                     pareto_rewards.extend(pareto_batch)
                     rewards_batch = []
-            
+
         pareto_rewards.extend(rewards_batch)
         pareto_rewards = pareto_filter(pareto_rewards, minimize=False)
 
@@ -955,6 +955,7 @@ def check_linear_maximizability(
     strict_mask = margins > threshold
 
     return coplanar_mask, strict_mask, weights, margins
+
 
 def pareto_filter(costs, minimize=True):
     """

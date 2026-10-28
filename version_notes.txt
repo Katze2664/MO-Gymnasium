@@ -8,3 +8,9 @@ v7 - add `_` to reward names, change return type to tuple(array, dataframe), upd
 v8 - import linprog, delete ConvexHull, create weight names, use check_linear_maximizability(), coplanar mask for array, delete unneccessary print statement, rename mine and action column.
 v9 - update docstring formatting
 v10 - incomplete docstring edits
+
+# trimmed_sequence_lens varies on incremental
+# seq_counters varies on symmetric and trimmed_sequence_lens
+# len(seq_counters) = len(trimmed_sequences) * len(mine_sequences) * (1 if symmetric else len(trimmed_sequences))
+
+# max_len is constant
